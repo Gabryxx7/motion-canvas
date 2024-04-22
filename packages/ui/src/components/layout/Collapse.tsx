@@ -1,17 +1,19 @@
-import {useEffect, useLayoutEffect, useRef, useState} from 'preact/hooks';
-import styles from './Collapse.module.scss';
-import {ComponentChildren, JSX} from 'preact';
 import clsx from 'clsx';
+import {ComponentChildren, JSX} from 'preact';
+import {useEffect, useLayoutEffect, useRef, useState} from 'preact/hooks';
 import {useReducedMotion} from '../../hooks';
+import styles from './Collapse.module.scss';
 
 export interface CollapseProps extends JSX.HTMLAttributes<HTMLDivElement> {
   open: boolean;
   children: ComponentChildren;
+  animated?: boolean;
 }
 
-export function Collapse(props: CollapseProps) {
+export function Collapse({animated = true, ...props}: CollapseProps) {
   const reducedMotion = useReducedMotion();
-  const Component = reducedMotion ? ReducedCollapse : AnimatedCollapse;
+  const Component =
+    !reducedMotion && animated ? AnimatedCollapse : ReducedCollapse;
   return <Component {...props} />;
 }
 

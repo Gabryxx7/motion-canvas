@@ -1,30 +1,34 @@
 import styles from './Timeline.module.scss';
 
-import {useCallback, useLayoutEffect, useMemo, useRef} from 'preact/hooks';
+import { useSignal, useSignalEffect } from '@preact/signals';
+import clsx from 'clsx';
+import { useLayoutEffect, useMemo, useRef } from 'preact/hooks';
+import {
+  TimelineContextProvider,
+  TimelineState,
+  useApplication,
+} from '../../contexts';
 import {
   useDocumentEvent,
   useDuration,
   usePreviewSettings,
+  useReducedMotion,
+  useSharedSettings,
   useSize,
   useStateChange,
   useStorage,
 } from '../../hooks';
-import {Playhead} from './Playhead';
-import {Timestamps} from './Timestamps';
-import {LabelTrack} from './LabelTrack';
-import {SceneTrack} from './SceneTrack';
-import {RangeSelector} from './RangeSelector';
-import {clamp} from '../../utils';
-import {AudioTrack} from './AudioTrack';
-import {
-  useApplication,
-  TimelineContextProvider,
-  TimelineState,
-} from '../../contexts';
-import clsx from 'clsx';
-import {useShortcut} from '../../hooks/useShortcut';
-import {labelClipDraggingLeftSignal} from '../../signals';
+import { useShortcut } from '../../hooks/useShortcut';
+import { labelClipDraggingLeftSignal } from '../../signals';
 import { Modules } from '@motion-canvas/core';
+import { MouseButton, MouseMask, clamp } from '../../utils';
+import { borderHighlight } from '../animations';
+import { AudioTrack } from './AudioTrack';
+import { LabelTrack } from './LabelTrack';
+import { Playhead } from './Playhead';
+import { RangeSelector } from './RangeSelector';
+import { SceneTrack } from './SceneTrack';
+import { Timestamps } from './Timestamps';
 
 const ZOOM_SPEED = 0.1;
 const ZOOM_MIN = 0.5;
@@ -32,15 +36,20 @@ const TIMESTAMP_SPACING = 32;
 const MAX_FRAME_SIZE = 128;
 
 export function Timeline() {
-  const {hoverRef} = useShortcut<HTMLDivElement>(Modules.Timeline);
-  const {player} = useApplication();
+  const { hoverRef } = useShortcut<HTMLDivElement>(Modules.Timeline);
+  const { player, meta } = useApplication();
+  const { range } = useSharedSettings();
   const containerRef = useRef<HTMLDivElement>();
   const playheadRef = useRef<HTMLDivElement>();
+  const rangeRef = useRef<HTMLDivElement>();
   const duration = useDuration();
-  const {fps} = usePreviewSettings();
+  const { fps } = usePreviewSettings();
   const rect = useSize(containerRef);
   const [offset, setOffset] = useStorage('timeline-offset', 0);
   const [scale, setScale] = useStorage('timeline-scale', 1);
+  const reduceMotion = useReducedMotion();
+  const seeking = useSignal<number | null>(null);
+  const warnedAboutRange = useRef(false);
   const isReady = duration > 0;
 
   useLayoutEffect(() => {
@@ -88,6 +97,7 @@ export function Timeline() {
           relativeOffset + sizes.viewLength + TIMESTAMP_SPACING,
         ) / clampedSegmentDensity,
       ) * clampedSegmentDensity;
+    const startPosition = sizes.paddingLeft + rect.x - offset;
 
     return {
       viewLength: sizes.viewLength,
@@ -96,6 +106,8 @@ export function Timeline() {
       lastVisibleFrame,
       density,
       segmentDensity,
+      pointerToFrames: (value: number) =>
+        conversion.pixelsToFrames(value - startPosition),
       ...conversion,
     };
   }, [sizes, conversion, duration, offset]);
@@ -117,28 +129,68 @@ export function Timeline() {
     [duration / fps, rect.width],
   );
 
-  useDocumentEvent(
-    'keydown',
-    useCallback(
-      event => {
-        if (document.activeElement.tagName === 'INPUT') {
-          return;
-        }
-        if (event.key !== 'f') return;
-        const frame = player.onFrameChanged.current;
+  useDocumentEvent('keydown', event => {
+    if (document.activeElement.tagName === 'INPUT') {
+      return;
+    }
+
+    const frame = player.onFrameChanged.current;
+    switch (event.key) {
+      case 'f': {
         const maxOffset = sizes.fullLength - sizes.viewLength;
         const scrollLeft = state.framesToPixels(frame);
         const newOffset = clamp(0, maxOffset, scrollLeft);
         containerRef.current.scrollLeft = newOffset;
         setOffset(newOffset);
-      },
-      [sizes],
-    ),
-  );
+        break;
+      }
+      case 'b': {
+        const end = player.status.secondsToFrames(range[1]);
+        meta.shared.range.update(frame, end, duration, fps);
+        break;
+      }
+      case 'n': {
+        const start = player.status.secondsToFrames(range[0]);
+        meta.shared.range.update(start, frame, duration, fps);
+        break;
+      }
+    }
+  });
 
   useLayoutEffect(() => {
     containerRef.current.scrollLeft = offset;
   }, [scale]);
+
+  useSignalEffect(() => {
+    const offset = labelClipDraggingLeftSignal.value;
+    if (offset !== null && playheadRef.current) {
+      playheadRef.current.style.left = `${state.framesToPixels(player.status.secondsToFrames(offset)) +
+        sizes.paddingLeft
+        }px`;
+    }
+  });
+
+  const scrub = (x: number) => {
+    const frame = Math.floor(state.pointerToFrames(x));
+
+    seeking.value = player.clampRange(frame);
+    if (player.onFrameChanged.current !== frame) {
+      player.requestSeek(frame);
+    }
+
+    const isInUserRange = player.isInUserRange(frame);
+    const isOutOfRange = player.isInRange(frame) && !isInUserRange;
+    if (!warnedAboutRange.current && !reduceMotion && isOutOfRange) {
+      warnedAboutRange.current = true;
+      rangeRef.current?.animate(borderHighlight(), {
+        duration: 200,
+      });
+    }
+
+    if (isInUserRange) {
+      warnedAboutRange.current = false;
+    }
+  };
 
   return (
     <TimelineContextProvider state={state}>
@@ -184,60 +236,57 @@ export function Timeline() {
             if (!isNaN(newOffset)) {
               setOffset(newOffset);
             }
-            playheadRef.current.style.left = `${
-              event.x - rect.x + newOffset
-            }px`;
+            playheadRef.current.style.left = `${event.x - rect.x + newOffset
+              }px`;
           }}
           onPointerDown={event => {
-            if (event.button === 1) {
+            if (event.button === MouseButton.Left) {
+              event.preventDefault();
+              event.currentTarget.setPointerCapture(event.pointerId);
+              playheadRef.current.style.display = 'none';
+              scrub(event.x);
+            } else if (event.button === MouseButton.Middle) {
               event.preventDefault();
               event.currentTarget.setPointerCapture(event.pointerId);
               containerRef.current.style.cursor = 'grabbing';
             }
           }}
           onPointerMove={event => {
-            if (labelClipDraggingLeftSignal.value) {
-              playheadRef.current.style.left = `${
-                state.framesToPixels(
-                  player.status.secondsToFrames(
-                    labelClipDraggingLeftSignal.value,
-                  ),
-                ) + sizes.paddingLeft
-              }px`;
-            } else {
-              playheadRef.current.style.left = `${event.x - rect.x + offset}px`;
-            }
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-              const newOffset = clamp(
-                0,
-                sizes.playableLength,
-                offset - event.movementX,
-              );
-              setOffset(newOffset);
-              containerRef.current.scrollLeft = newOffset;
+              if (event.buttons & MouseMask.Primary) {
+                scrub(event.x);
+              } else if (event.buttons & MouseMask.Auxiliary) {
+                const newOffset = clamp(
+                  0,
+                  sizes.playableLength,
+                  offset - event.movementX,
+                );
+                setOffset(newOffset);
+                containerRef.current.scrollLeft = newOffset;
+              }
+            } else if (labelClipDraggingLeftSignal.value === null) {
+              playheadRef.current.style.left = `${event.x - rect.x + offset}px`;
             }
           }}
           onPointerUp={event => {
-            if (event.button === 1) {
+            if (labelClipDraggingLeftSignal.value === null) {
+              playheadRef.current.style.left = `${event.x - rect.x + offset}px`;
+            }
+            if (
+              event.button === MouseButton.Left ||
+              event.button === MouseButton.Middle
+            ) {
+              seeking.value = null;
+              warnedAboutRange.current = false;
               event.currentTarget.releasePointerCapture(event.pointerId);
               containerRef.current.style.cursor = '';
+              playheadRef.current.style.display = '';
             }
           }}
         >
           <div
             className={styles.timeline}
-            style={{width: `${sizes.fullLength}px`}}
-            onMouseUp={event => {
-              if (event.button === 0) {
-                player.requestSeek(
-                  Math.floor(
-                    state.pixelsToFrames(
-                      offset - sizes.paddingLeft + event.x - rect.x,
-                    ),
-                  ),
-                );
-              }
-            }}
+            style={{ width: `${sizes.fullLength}px` }}
           >
             <div
               className={styles.timelineContent}
@@ -246,14 +295,14 @@ export function Timeline() {
                 left: `${sizes.paddingLeft}px`,
               }}
             >
-              <RangeSelector />
+              <RangeSelector rangeRef={rangeRef} />
               <Timestamps />
               <div className={styles.trackContainer}>
                 <SceneTrack />
                 <LabelTrack />
                 <AudioTrack />
               </div>
-              <Playhead />
+              <Playhead seeking={seeking} />
             </div>
           </div>
           <div ref={playheadRef} className={styles.playheadPreview} />

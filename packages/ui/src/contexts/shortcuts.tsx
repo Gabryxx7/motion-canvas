@@ -1,7 +1,7 @@
-import {ComponentChildren, createContext} from 'preact';
-import {useContext, useMemo, useState, useEffect} from 'preact/hooks';
-import {ViewportKeybindings} from '../components/viewport/ViewportKeybindings';
-import {TimelineKeybindings} from '../components/timeline/TimelineKeybindings';
+import { ComponentChildren, createContext } from 'preact';
+import { useContext, useMemo, useState, useEffect } from 'preact/hooks';
+import { ViewportKeybindings } from '../components/viewport/ViewportKeybindings';
+import { TimelineKeybindings } from '../components/timeline/TimelineKeybindings';
 import { PresentationKeybindings } from '../components/presentation/PresentationKeybindings';
 import { Modules, KeyBindingMapping, ModuleType } from '@motion-canvas/core';
 import { KeyCodes } from '@motion-canvas/core';
@@ -9,9 +9,9 @@ import { UIAction } from '../Index';
 
 export declare type ModuleShortcuts = Record<string, UIAction>
 export declare type ShortcutsByModule = Record<ModuleType | string, ModuleShortcuts>
-export const GlobalKeybindings : ModuleShortcuts = {
+export const GlobalKeybindings: ModuleShortcuts = {
   ZOOM_TO_FIT: new UIAction('Zoom to fit', KeyCodes.KEY_0),
-  TOGGLE_PLAYBACK:  new UIAction('Toggle playback', KeyCodes.SPACEBAR),
+  TOGGLE_PLAYBACK: new UIAction('Toggle playback', KeyCodes.SPACEBAR),
   PREVIOUS_FRAME: new UIAction('Previous frame', KeyCodes.LEFT_ARROW),
   NEXT_FRAME: new UIAction('Next frame', KeyCodes.RIGHT_ARROW),
   TO_FIRST_FRAME: new UIAction('Reset to first frame', KeyCodes.LEFT_ARROW.modifier(KeyCodes.SHIFT)),
@@ -23,6 +23,33 @@ export const GlobalKeybindings : ModuleShortcuts = {
 
 
 const InitialShortcuts: ShortcutsByModule = {
+  // global: [
+  //   { key: 'Space', action: 'Toggle playback' },
+  //   { key: '<-', action: 'Previous frame' },
+  //   { key: '->', action: 'Next frame' },
+  //   { key: 'Shift + <-', action: 'Reset to first frame' },
+  //   { key: 'Shift + ->', action: 'Seek to last frame' },
+  //   { key: 'M', action: 'Toggle audio' },
+  //   { key: 'L', action: 'Toggle loop' },
+  // ],
+  // viewport: [
+  //   { key: '0', action: 'Zoom to fit' },
+  //   { key: '=', action: 'Zoom in' },
+  //   { key: '-', action: 'Zoom out' },
+  //   { key: "'", action: 'Toggle grid' },
+  //   { key: 'P', action: 'Copy coordinates' },
+  //   {
+  //     key: 'I',
+  //     action: 'Use color picker',
+  //     available: () => typeof EyeDropper === 'function',
+  //   },
+  // ],
+  // timeline: [
+  //   { key: 'F', action: 'Focus playhead' },
+  //   { key: 'B', action: 'Move range start to playhead' },
+  //   { key: 'N', action: 'Move range end to playhead' },
+  // ],
+  // none: [],
   [Modules.Global as ModuleType]: GlobalKeybindings,
   [Modules.Viewport as ModuleType]: ViewportKeybindings,
   [Modules.Timeline as ModuleType]: TimelineKeybindings,
@@ -42,7 +69,7 @@ Object.values(InitialShortcuts).forEach(moduleShortcuts =>
 
 export declare type ShortcutsState = {
   currentModule: ModuleType;
-  setCurrentModule?: (module: ModuleType | string, disableHover? : boolean) => void;
+  setCurrentModule?: (module: ModuleType | string, disableHover?: boolean) => void;
   hoverEnabled: boolean;
   setHoverEnabled?: (hoverEnabled: boolean) => void;
   moduleShortcuts: ModuleShortcuts,
@@ -52,16 +79,16 @@ export declare type ShortcutsState = {
 const ShortcutsContext = createContext<ShortcutsState>({
   currentModule: Modules.None as ModuleType,
   hoverEnabled: true,
-  moduleShortcuts:  InitialShortcuts[Modules.None as ModuleType],
+  moduleShortcuts: InitialShortcuts[Modules.None as ModuleType],
   allShortcuts: InitialShortcuts,
 });
 
-export function ShortcutsProvider({children}: {children: ComponentChildren}) {
+export function ShortcutsProvider({ children }: { children: ComponentChildren }) {
   const [currentModule, setCurrentModuleState] = useState<ModuleType>(Modules.None as ModuleType);
   const [hoverEnabled, setHoverEnabled] = useState(true);
   const setCurrentModule = (module: string) => {
     // console.log(`Switching to module ${module}. Hover enabled? ${hoverEnabled}`);
-    if(hoverEnabled){
+    if (hoverEnabled) {
       setCurrentModuleState(module as ModuleType);
     }
   }
@@ -77,7 +104,7 @@ export function ShortcutsProvider({children}: {children: ComponentChildren}) {
 
   return (
     <ShortcutsContext.Provider
-      value={{currentModule, setCurrentModule, hoverEnabled, setHoverEnabled, moduleShortcuts, allShortcuts: InitialShortcuts}}
+      value={{ currentModule, setCurrentModule, hoverEnabled, setHoverEnabled, moduleShortcuts, allShortcuts: InitialShortcuts }}
     >
       {children}
     </ShortcutsContext.Provider>

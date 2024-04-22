@@ -108,6 +108,18 @@ const config = {
       prism: {
         theme: require('./config/codeTheme'),
         darkTheme: require('./config/codeTheme'),
+        additionalLanguages: ['glsl'],
+        magicComments: [
+          {
+            className: 'theme-code-block-highlighted-line',
+            line: 'highlight-next-line',
+            block: {start: 'highlight-start', end: 'highlight-end'},
+          },
+          {
+            className: 'prettier-ignore',
+            line: 'prettier-ignore',
+          },
+        ],
       },
     }),
   themes: [
@@ -131,6 +143,17 @@ const config = {
         exclude: ['**/api/core/*.md', '**/api/2d/*.md'],
         showLastUpdateAuthor: true,
         docItemComponent: '@site/src/components/DocPage',
+        admonitions: {
+          tag: ':::',
+          keywords: [
+            'note',
+            'tip',
+            'info',
+            'caution',
+            'danger',
+            'experimental',
+          ],
+        },
         editUrl: ({versionDocsDirPath, docPath}) =>
           `https://github.com/motion-canvas/motion-canvas/blob/main/packages/docs/${versionDocsDirPath}/${docPath}`,
       },

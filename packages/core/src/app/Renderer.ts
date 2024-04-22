@@ -1,14 +1,15 @@
-import type {Project} from './Project';
-import type {Exporter} from './Exporter';
-import type {Scene} from '../scenes';
-import {PlaybackManager, PlaybackState} from './PlaybackManager';
-import {Stage, StageSettings} from './Stage';
 import {EventDispatcher, ValueDispatcher} from '../events';
-import {Vector2} from '../types';
-import {PlaybackStatus} from './PlaybackStatus';
-import {Semaphore} from '../utils';
+import type {Scene} from '../scenes';
 import {ReadOnlyTimeEvents} from '../scenes/timeEvents';
 import {clampRemap} from '../tweening';
+import {Vector2} from '../types';
+import {Semaphore} from '../utils';
+import type {Exporter} from './Exporter';
+import {PlaybackManager, PlaybackState} from './PlaybackManager';
+import {PlaybackStatus} from './PlaybackStatus';
+import type {Project} from './Project';
+import {SharedWebGLContext} from './SharedWebGLContext';
+import {Stage, StageSettings} from './Stage';
 import {TimeEstimator} from './TimeEstimator';
 
 export interface RendererSettings extends StageSettings {
@@ -65,12 +66,14 @@ export class Renderer {
   private readonly lock = new Semaphore();
   private readonly playback: PlaybackManager;
   private readonly status: PlaybackStatus;
+  private readonly sharedWebGLContext: SharedWebGLContext;
   private exporter: Exporter | null = null;
   private abortController: AbortController | null = null;
 
   public constructor(private project: Project) {
     this.playback = new PlaybackManager();
     this.status = new PlaybackStatus(this.playback);
+    this.sharedWebGLContext = new SharedWebGLContext(this.project.logger);
     const scenes: Scene[] = [];
     for (const description of project.scenes) {
       const scene = new description.klass({
@@ -81,6 +84,8 @@ export class Renderer {
         size: new Vector2(1920, 1080),
         resolutionScale: 1,
         timeEventsClass: ReadOnlyTimeEvents,
+        sharedWebGLContext: this.sharedWebGLContext,
+        experimentalFeatures: project.experimentalFeatures,
       });
       scenes.push(scene);
     }
@@ -117,6 +122,7 @@ export class Renderer {
     this.estimator.update(1);
     this.state.current = RendererState.Initial;
     this.finished.dispatch(result);
+    this.sharedWebGLContext.dispose();
     this.lock.release();
   }
 
@@ -158,6 +164,7 @@ export class Renderer {
       if (import.meta.hot) {
         import.meta.hot.send('motion-canvas:export', {
           frame,
+          name: frame.toString().padStart(6, '0'),
           data: this.stage.finalBuffer.toDataURL('image/png'),
           mimeType: 'image/png',
           subDirectories: ['still', this.project.name],

@@ -1,5 +1,5 @@
-import type {Scene, SceneDescriptionReload, Slide} from '../scenes';
 import {ValueDispatcher} from '../events';
+import type {Scene, SceneDescriptionReload, Slide} from '../scenes';
 
 export enum PlaybackState {
   Playing,
@@ -153,6 +153,7 @@ export class PlaybackManager {
     this.previousScene = null;
     this.currentScene = this.scenes.current[0];
     this.frame = 0;
+    this.finished = false;
     await this.currentScene.reset();
   }
 

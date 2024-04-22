@@ -1,9 +1,9 @@
 import styles from './PresentationControls.module.scss';
 
-import {IconButton} from '../controls';
-import {useDocumentEvent, useKeyDown, useSubscribableValue} from '../../hooks';
-import {useCallback, Ref, StateUpdater, useEffect} from 'preact/hooks';
-import {useApplication, useShortcuts } from '../../contexts';
+import { useDocumentEvent, useKeyDown, useSubscribableValue } from '../../hooks';
+import { useCallback, Ref, StateUpdater, useEffect } from 'preact/hooks';
+import { useApplication, useShortcuts } from '../../contexts';
+import { IconButton } from '../controls';
 import {
   Close,
   Fullscreen,
@@ -13,17 +13,17 @@ import {
   SkipPrevious,
 } from '../icons';
 
-import { PresentationKeybindings, PresentationKeybindingsType} from './PresentationKeybindings';
+import { PresentationKeybindings, PresentationKeybindingsType } from './PresentationKeybindings';
 import { useAction } from '../../hooks/useAction';
 import { PresenterState } from '@motion-canvas/core';
- 
+
 export interface PresentationControlsProps {
   customStage?: Ref<HTMLDivElement>,
-  onKeyPressed? : (key: string) => void;
+  onKeyPressed?: (key: string) => void;
 }
 
-export function PresentationControls({customStage, onKeyPressed} : PresentationControlsProps) {
-  const {presenter, project} = useApplication();
+export function PresentationControls({ customStage, onKeyPressed }: PresentationControlsProps) {
+  const { presenter, project } = useApplication();
   // const {moduleShortcuts} : {moduleShortcuts: PresentationKeybindingsType} = useShortcuts();
   const state = useSubscribableValue(presenter.onStateChanged);
   const status = useSubscribableValue(presenter.onInfoChanged);
@@ -31,14 +31,14 @@ export function PresentationControls({customStage, onKeyPressed} : PresentationC
   useEffect(() => {
     presenter.setCustomStage(customStage.current);
   }, [])
-  
+
   useAction(PresentationKeybindings.RESUME, () => presenter.resume());
   useAction(PresentationKeybindings.TOGGLE_FULLSCREEN, () => presenter.toggleFullscreen());
-  useAction(PresentationKeybindings.PREV_SLIDE, (event) => event.shiftKey? presenter.requestFirstSlide() : presenter.requestPreviousSlide());
-  useAction(PresentationKeybindings.NEXT_SLIDE, (event) => event.shiftKey? presenter.requestLastSlide() : presenter.requestNextSlide());
+  useAction(PresentationKeybindings.PREV_SLIDE, (event) => event.shiftKey ? presenter.requestFirstSlide() : presenter.requestPreviousSlide());
+  useAction(PresentationKeybindings.NEXT_SLIDE, (event) => event.shiftKey ? presenter.requestLastSlide() : presenter.requestNextSlide());
   useAction(PresentationKeybindings.TOGGLE_PRESENT_MODE, () => {
     console.log("P pressed on presentation mode!");
-    if(state != PresenterState.Aborting){
+    if (state != PresenterState.Aborting) {
       presenter.abort();
     }
   });
@@ -70,8 +70,8 @@ export function PresentationControls({customStage, onKeyPressed} : PresentationC
       </div>
       {!project.variables?.fullscreen &&
         <IconButton title="Go back to editing" onClick={() => presenter.abort()}>
-        <Close />
-      </IconButton>
+          <Close />
+        </IconButton>
       }
       <IconButton
         title="Previous slide [Left arrow]"

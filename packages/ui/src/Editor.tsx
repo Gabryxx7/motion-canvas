@@ -1,53 +1,48 @@
-import {Footer} from './components/footer';
-import {Viewport} from './components/viewport';
-import {Navigation, ElementSwitch, ResizeableLayout} from './components/layout';
-import {usePresenterState} from './hooks';
-import {PresenterState} from '@motion-canvas/core';
-import {PresentationMode} from './components/presentation';
-import {EditorPanel, BottomPanel, SidebarPanel} from './signals';
-import {Timeline} from './components/timeline';
-import {Console} from './components/console';
-import {
-  Properties,
-  Settings,
-  Threads,
-  VideoSettings,
-} from './components/sidebar';
+import { PresenterState } from '@motion-canvas/core';
 import styles from './Editor.module.scss';
+import { Console } from './components/console';
+import { Footer } from './components/footer';
+import { ElementSwitch, Navigation, ResizeableLayout } from './components/layout';
+import { PresentationMode } from './components/presentation';
+import { Settings, Threads, VideoSettings } from './components/sidebar';
+import { Timeline } from './components/timeline';
+import { Viewport } from './components/viewport';
+import { usePanels } from './contexts';
+import { usePresenterState } from './hooks';
+import { EditorPanel } from './signals';
 import { useApplication } from './contexts';
-
 
 export function Editor() {
   const state = usePresenterState();
-  const {renderer, presenter, meta, project} = useApplication();
-  if(project.variables?.presentOnStart){
+  const { renderer, presenter, meta, project } = useApplication();
+  if (project.variables?.presentOnStart) {
     presenter.present({
-        ...meta.getFullRenderingSettings(),
-        name: project.name,
-        slide: null,
-        startFullscreen: !!project.variables?.fullscreen
-      });
+      ...meta.getFullRenderingSettings(),
+      name: project.name,
+      slide: null,
+      startFullscreen: !!project.variables?.fullscreen
+    });
   }
+  const { sidebar, bottom } = usePanels();
 
   return state === PresenterState.Initial ? (
     <div className={styles.root}>
       <Navigation />
       <ResizeableLayout
         id={`main-timeline`}
-        hidden={BottomPanel.isHidden}
+        hidden={bottom.isHidden}
         offset={-160}
         vertical
       >
         <ResizeableLayout
           id={`sidebar-viewport`}
-          hidden={SidebarPanel.isHidden}
+          hidden={sidebar.isHidden}
           offset={400}
         >
           <ElementSwitch
-            value={SidebarPanel.get()}
+            value={sidebar.current.value}
             cases={{
               [EditorPanel.VideoSettings]: VideoSettings,
-              [EditorPanel.Inspector]: Properties,
               [EditorPanel.Threads]: Threads,
               [EditorPanel.Console]: Console,
               [EditorPanel.Settings]: Settings,
@@ -56,7 +51,7 @@ export function Editor() {
           <Viewport />
         </ResizeableLayout>
         <ElementSwitch
-          value={BottomPanel.get()}
+          value={bottom.current.value}
           cases={{
             [EditorPanel.Timeline]: Timeline,
           }}

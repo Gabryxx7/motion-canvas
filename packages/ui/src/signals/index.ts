@@ -1,5 +1,4 @@
 export * from './EditorPanel';
-export * from './projectName';
-export * from './panels';
-export * from './storedSignal';
 export * from './labelClip';
+export * from './projectName';
+export * from './storedSignal';

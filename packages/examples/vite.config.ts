@@ -1,5 +1,5 @@
-import {defineConfig} from 'vite';
 import motionCanvas from '@motion-canvas/vite-plugin';
+import {defineConfig} from 'vite';
 
 export default defineConfig({
   plugins: [
@@ -14,6 +14,7 @@ export default defineConfig({
         './src/tweening-visualiser.ts',
         './src/node-signal.ts',
         './src/code-block.ts',
+        './src/code.ts',
         './src/random.ts',
         './src/layout.ts',
         './src/layout-group.ts',

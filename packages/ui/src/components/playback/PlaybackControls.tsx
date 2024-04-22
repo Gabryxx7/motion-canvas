@@ -1,26 +1,26 @@
 import styles from './Playback.module.scss';
 
-import {IconButton, IconCheckbox, Input, Select} from '../controls';
-import {useDocumentEvent, usePlayerState, usePresenterState} from '../../hooks';
-import {Framerate} from './Framerate';
-import {useCallback} from 'preact/hooks';
-import {useApplication} from '../../contexts';
+import { useDocumentEvent, usePlayerState, usePresenterState } from '../../hooks';
+import { Framerate } from './Framerate';
+import { useCallback } from 'preact/hooks';
+import { useApplication } from '../../contexts';
+import { IconButton, IconCheckbox, Input, Select, Slider } from '../controls';
 import {
+  FastForward,
+  FastRewind,
   Pause,
   PhotoCamera,
   PlayArrow,
   Repeat,
   SkipNext,
   SkipPrevious,
-  FastForward,
-  FastRewind,
   VolumeOff,
   VolumeOn,
 } from '../icons';
 import { PresenterState } from '@motion-canvas/core';
 
 export function PlaybackControls() {
-  const {player, renderer, meta, project, presenter} = useApplication();
+  const { player, renderer, meta, project, presenter } = useApplication();
   const state = usePlayerState();
   const presenterState = usePresenterState();
 
@@ -57,6 +57,12 @@ export function PlaybackControls() {
           case 'm':
             player.toggleAudio();
             break;
+          case 'ArrowUp':
+            player.addAudioVolume(0.1);
+            break;
+          case 'ArrowDown':
+            player.addAudioVolume(-0.1);
+            break;
           case 'l':
             player.toggleLoop();
             break;
@@ -67,7 +73,7 @@ export function PlaybackControls() {
               name: project.name,
               slide: null,
             });
-          break;
+            break;
         }
       },
       [player],
@@ -79,23 +85,41 @@ export function PlaybackControls() {
       <Select
         title="Playback speed"
         options={[
-          {value: 0.25, text: 'x0.25'},
-          {value: 0.5, text: 'x0.5'},
-          {value: 1, text: 'x1'},
-          {value: 1.5, text: 'x1.5'},
-          {value: 2, text: 'x2'},
+          { value: 0.25, text: 'x0.25' },
+          { value: 0.5, text: 'x0.5' },
+          { value: 1, text: 'x1' },
+          { value: 1.5, text: 'x1.5' },
+          { value: 2, text: 'x2' },
         ]}
         value={state.speed}
         onChange={speed => player.setSpeed(speed)}
       />
-      <IconCheckbox
-        titleOn="Mute audio [M]"
-        titleOff="Unmute audio [M]"
-        checked={!state.muted}
-        onChange={value => player.toggleAudio(value)}
-      >
-        {state.muted ? <VolumeOff /> : <VolumeOn />}
-      </IconCheckbox>
+      <div className={styles.volumeTrigger}>
+        <IconCheckbox
+          titleOn="Mute audio [M]"
+          titleOff="Unmute audio [M]"
+          checked={!state.muted}
+          onChange={value => player.toggleAudio(value)}
+        >
+          {state.muted ? <VolumeOff /> : <VolumeOn />}
+        </IconCheckbox>
+
+        {!state.muted && (
+          <div className={styles.volumeMargin}>
+            <div className={styles.volume}>
+              <Slider
+                value={state.volume}
+                onChange={volume => {
+                  if (isNaN(volume)) {
+                    volume = 0;
+                  }
+                  player.setAudioVolume(volume);
+                }}
+              />
+            </div>
+          </div>
+        )}
+      </div>
       <IconButton
         title="Start [Shift + Left arrow]"
         onClick={() => player.requestReset()}

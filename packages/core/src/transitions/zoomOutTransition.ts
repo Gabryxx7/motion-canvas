@@ -1,10 +1,10 @@
+import {all} from '../flow';
+import {createSignal} from '../signals';
+import {ThreadGenerator} from '../threading';
+import {clampRemap, easeInOutCubic, linear} from '../tweening';
 import {BBox, Vector2} from '../types';
 import {useScene} from '../utils';
 import {useTransition} from './useTransition';
-import {clampRemap, easeInOutCubic, linear} from '../tweening';
-import {createSignal} from '../signals';
-import {all} from '../flow';
-import {ThreadGenerator} from '../threading';
 
 /**
  * Perform a transition that zooms out from a given area of the scene.
@@ -16,7 +16,7 @@ export function* zoomOutTransition(
   area: BBox,
   duration = 0.6,
 ): ThreadGenerator {
-  const scale = useScene().getSize().div(area.size);
+  const scale = useScene().getRealSize().div(area.size);
 
   const currentPosition = Vector2.createSignal(
     area.position.flipped.mul(scale),

@@ -1,16 +1,18 @@
+import {Logger, PlaybackStatus} from '../app';
+import {decorate, threadable} from '../decorators';
+import {EventDispatcher, ValueDispatcher} from '../events';
+import {DependencyContext, SignalValue} from '../signals';
 import {
-  isPromisable,
-  isPromise,
   Thread,
   ThreadGenerator,
+  isPromisable,
+  isPromise,
   threads,
 } from '../threading';
-import {Logger, PlaybackStatus} from '../app';
-import {TimeEvents} from './timeEvents';
-import {Variables} from './Variables';
-import {EventDispatcher, ValueDispatcher} from '../events';
-import {decorate, threadable} from '../decorators';
+import {Vector2} from '../types';
 import {endPlayback, endScene, startPlayback, startScene} from '../utils';
+import {LifecycleEvents} from './LifecycleEvents';
+import {Random} from './Random';
 import {
   CachedSceneData,
   FullSceneDescription,
@@ -18,14 +20,13 @@ import {
   SceneDescriptionReload,
   SceneRenderEvent,
 } from './Scene';
-import {LifecycleEvents} from './LifecycleEvents';
-import {Threadable} from './Threadable';
-import {BBox, Vector2} from '../types';
-import {SceneState} from './SceneState';
-import {Random} from './Random';
-import {DependencyContext} from '../signals';
 import {SceneMetadata} from './SceneMetadata';
+import {SceneState} from './SceneState';
+import {Shaders} from './Shaders';
 import {Slides} from './Slides';
+import {Threadable} from './Threadable';
+import {Variables} from './Variables';
+import {TimeEvents} from './timeEvents';
 
 export interface ThreadGeneratorFactory<T> {
   (view: T): ThreadGenerator;
@@ -44,10 +45,12 @@ export abstract class GeneratorScene<T>
   public readonly logger: Logger;
   public readonly meta: SceneMetadata;
   public readonly timeEvents: TimeEvents;
+  public readonly shaders: Shaders;
   public readonly slides: Slides;
   public readonly variables: Variables;
   public random: Random;
   public creationStack?: string;
+  public previousOnTop: SignalValue<boolean>;
 
   public get firstFrame() {
     return this.cache.current.firstFrame;
@@ -107,6 +110,8 @@ export abstract class GeneratorScene<T>
     return this.previousScene;
   }
 
+  public readonly experimentalFeatures: boolean;
+
   protected resolutionScale: number;
   private runnerFactory: ThreadGeneratorFactory<T>;
   private previousScene: Scene | null = null;
@@ -127,13 +132,16 @@ export abstract class GeneratorScene<T>
     this.meta = description.meta;
     this.runnerFactory = description.config;
     this.creationStack = description.stack;
+    this.experimentalFeatures = description.experimentalFeatures ?? false;
 
     decorate(this.runnerFactory, threadable(this.name));
     this.timeEvents = new description.timeEventsClass(this);
     this.variables = new Variables(this);
+    this.shaders = new Shaders(this, description.sharedWebGLContext);
     this.slides = new Slides(this);
 
     this.random = new Random(this.meta.seed.get());
+    this.previousOnTop = false;
   }
 
   public abstract getView(): T;
@@ -156,8 +164,7 @@ export abstract class GeneratorScene<T>
       iterations++;
       await DependencyContext.consumePromises();
       context.save();
-      const box = BBox.fromSizeCentered(this.getSize());
-      context.clearRect(box.x, box.y, box.width, box.height);
+      context.clearRect(0, 0, context.canvas.width, context.canvas.height);
       this.execute(() => this.draw(context));
       context.restore();
     } while (DependencyContext.hasPromises() && iterations < 10);
@@ -271,6 +278,7 @@ export abstract class GeneratorScene<T>
   public async reset(previousScene: Scene | null = null) {
     this.counters = {};
     this.previousScene = previousScene;
+    this.previousOnTop = false;
     this.random = new Random(this.meta.seed.get());
     this.runner = threads(
       () => this.runnerFactory(this.getView()),
@@ -285,6 +293,10 @@ export abstract class GeneratorScene<T>
 
   public getSize(): Vector2 {
     return this.size;
+  }
+
+  public getRealSize(): Vector2 {
+    return this.size.mul(this.resolutionScale);
   }
 
   public isAfterTransitionIn(): boolean {

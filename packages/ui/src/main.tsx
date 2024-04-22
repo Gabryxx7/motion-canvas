@@ -1,20 +1,27 @@
 import './index.scss';
 
-import type {Project} from '@motion-canvas/core';
-import {Player, Presenter, Renderer} from '@motion-canvas/core';
-import {ComponentChild, render} from 'preact';
-import {Editor} from './Editor';
-// import {CustomStageOverlay} from "./components/viewport/CustomStageOverlay"
-// import type {CustomStageOverlayPropsType, CustomStageOverlayType} from "./components/viewport/CustomStageOverlay"
-import {Index, ProjectData} from './Index';
 import {
-  InspectionProvider,
-  LoggerProvider,
-  ApplicationProvider,
-} from './contexts';
-import {getItem, setItem} from './utils';
-import {ShortcutsProvider} from './contexts/shortcuts';
-import {projectNameSignal} from './signals';
+  Player,
+  Presenter,
+  Renderer,
+  experimentalLog,
+  type Project,
+} from '@motion-canvas/core';
+import { ComponentChild, render } from 'preact';
+import { Editor } from './Editor';
+import { ProjectData, ProjectSelection } from './ProjectSelection';
+import { ApplicationProvider, PanelsProvider } from './contexts';
+import { ShortcutsProvider } from './contexts/shortcuts';
+import GridPlugin from './plugin/GridPlugin';
+import { projectNameSignal } from './signals';
+import { getItem, setItem } from './utils';
+
+const ExperimentalHooks = [
+  'tabs',
+  'provider',
+  'previewOverlay',
+  'presenterOverlay',
+] as const;
 
 function renderRoot(vnode: ComponentChild) {
   const root = document.createElement('main');
@@ -31,13 +38,31 @@ export function editor(project: Project) {
   projectNameSignal.value = project.name;
 
   project.logger.onLogged.subscribe(log => {
-    const {level, message, stack, object, durationMs, ...rest} = log;
+    const { level, message, stack, object, durationMs, ...rest } = log;
     const fn = console[level as 'error'] ?? console.log;
     fn(message, ...[object, durationMs, rest].filter(part => !!part));
     if (stack) {
       fn(stack);
     }
   });
+
+  if (!project.experimentalFeatures) {
+    for (const plugin of project.plugins) {
+      if (plugin.name.startsWith('@motion-canvas')) {
+        continue;
+      }
+
+      const experimental = ExperimentalHooks.filter(key => key in plugin);
+      if (experimental.length > 0) {
+        project.logger.log(
+          experimentalLog(
+            `Plugin "${plugin.name
+            }" uses experimental editor hooks: ${experimental.join(', ')}.`,
+          ),
+        );
+      }
+    }
+  }
 
   const renderer = new Renderer(project);
   project.plugins.forEach(plugin => plugin.renderer?.(renderer));
@@ -97,6 +122,9 @@ export function editor(project: Project) {
   meta.preview.onChanged.subscribe(updatePlayer);
 
   document.title = `${project.name} | Motion Canvas`;
+
+  const plugins = [GridPlugin(), ...project.plugins];
+
   renderRoot(
     <ApplicationProvider
       application={{
@@ -107,20 +135,32 @@ export function editor(project: Project) {
         meta,
         settings,
         // customStageOverlay
+        plugins,
       }}
     >
-      <ShortcutsProvider>
-        <LoggerProvider>
-          <InspectionProvider>
-            <Editor />
-          </InspectionProvider>
-        </LoggerProvider>
-      </ShortcutsProvider>
+      <PanelsProvider>
+        <ShortcutsProvider>
+          <Editor />
+        </ShortcutsProvider>
+      </PanelsProvider>
     </ApplicationProvider>,
   );
 }
 
 
 export function index(projects: ProjectData[]) {
-  renderRoot(<Index projects={projects} />);
+  renderRoot(<ProjectSelection projects={projects} />);
 }
+
+export * from './components/animations';
+export * from './components/controls';
+export * from './components/fields';
+export * from './components/icons';
+export * from './components/layout';
+export * from './components/meta';
+export * from './components/tabs';
+export * from './contexts';
+export * from './hooks';
+export * from './plugin';
+export * from './signals';
+export * from './utils';

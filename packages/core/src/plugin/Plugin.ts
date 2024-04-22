@@ -1,9 +1,9 @@
 import type {
   ExporterClass,
-  Project,
   Player,
-  ProjectSettings,
   Presenter,
+  Project,
+  ProjectSettings,
   Renderer,
 } from '../app';
 
@@ -11,6 +11,20 @@ import type {
  * Represents a runtime Motion Canvas plugin.
  */
 export interface Plugin {
+  /**
+   * A unique name of the plugin.
+   *
+   * @remarks
+   * The name should be unique across the entire ecosystem of Motion Canvas.
+   * If a plugin with the same name has already been registered, this plugin
+   * will be ignored.
+   *
+   * If you intend to publish your plugin to npm, it is recommended to prefix
+   * this name with the name of your npm package.
+   *
+   * Other identifiers defined by the plugin, such as a tab id, will be
+   * automatically prefixed with this name and as such don't have to be unique.
+   */
   name: string;
 
   /**

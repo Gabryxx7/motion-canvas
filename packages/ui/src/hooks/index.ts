@@ -20,3 +20,4 @@ export * from './useStateChange';
 export * from './useStorage';
 export * from './useSubscribable';
 export * from './useShortcut';
+export * from './useViewportMatrix';

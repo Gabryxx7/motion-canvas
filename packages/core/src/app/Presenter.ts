@@ -1,14 +1,15 @@
-import type {Project} from './Project';
-import type {Logger} from './Logger';
-import type {Scene, Slide} from '../scenes';
-import {PlaybackManager, PlaybackState} from './PlaybackManager';
-import {Stage, StageSettings} from './Stage';
-import {ValueDispatcher} from '../events';
-import {Vector2} from '../types';
-import {PlaybackStatus} from './PlaybackStatus';
-import {Semaphore} from '../utils';
-import {ReadOnlyTimeEvents} from '../scenes/timeEvents';
-import {Ref} from 'preact/hooks';
+import { ValueDispatcher } from '../events';
+import type { Scene, Slide } from '../scenes';
+import { ReadOnlyTimeEvents } from '../scenes/timeEvents';
+import { Ref } from 'preact/hooks';
+import { Vector2 } from '../types';
+import { Semaphore } from '../utils';
+import type { Logger } from './Logger';
+import { PlaybackManager, PlaybackState } from './PlaybackManager';
+import { PlaybackStatus } from './PlaybackStatus';
+import type { Project } from './Project';
+import { SharedWebGLContext } from './SharedWebGLContext';
+import { Stage, StageSettings } from './Stage';
 
 export interface PresenterSettings extends StageSettings {
   name: string;
@@ -63,14 +64,14 @@ export class Presenter {
     fps: 0
   });
 
-  public setCustomStage(customStage : HTMLElement){
-    this.customStage =  customStage; 
+  public setCustomStage(customStage: HTMLElement) {
+    this.customStage = customStage;
   }
 
-  public toggleFullscreen(){
+  public toggleFullscreen() {
     if (document.fullscreenElement) {
       document.exitFullscreen();
-    } else if (!!this.customStage){
+    } else if (!!this.customStage) {
       this.customStage.requestFullscreen();
       // presenter.stage.finalBuffer.requestFullscreen();      
     }
@@ -83,12 +84,13 @@ export class Presenter {
   private sceneFrames = 0;
 
   public readonly stage = new Stage();
-  public declare customStage : HTMLElement;
+  public declare customStage: HTMLElement;
 
   private readonly lock = new Semaphore();
   public readonly playback: PlaybackManager;
   private readonly status: PlaybackStatus;
   private readonly logger: Logger;
+  private readonly sharedWebGLContext: SharedWebGLContext;
   private abortController: AbortController | null = null;
   private renderTime = 0;
   private requestId: number | null = null;
@@ -103,6 +105,7 @@ export class Presenter {
     this.logger = project.logger;
     this.playback = new PlaybackManager();
     this.status = new PlaybackStatus(this.playback);
+    this.sharedWebGLContext = new SharedWebGLContext(this.logger);
     const scenes: Scene[] = [];
     for (const description of project.scenes) {
       const scene = new description.klass({
@@ -113,6 +116,8 @@ export class Presenter {
         size: new Vector2(1920, 1080),
         resolutionScale: 1,
         timeEventsClass: ReadOnlyTimeEvents,
+        sharedWebGLContext: this.sharedWebGLContext,
+        experimentalFeatures: project.experimentalFeatures,
       });
       scenes.push(scene);
     }
@@ -135,9 +140,10 @@ export class Presenter {
       this.project.logger.error(e);
     }
 
+    this.sharedWebGLContext.dispose();
     this.state.current = PresenterState.Initial;
     this.lock.release();
-    if(settings.startFullscreen){
+    if (settings.startFullscreen) {
       this.toggleFullscreen();
     }
   }
@@ -161,11 +167,11 @@ export class Presenter {
   /**
    * Toggle presentation mode but do nothing if it's still in its initial state
    */
-  public togglePresentation(settings: PresenterSettings){
-    if(this.state.current == PresenterState.Working){
+  public togglePresentation(settings: PresenterSettings) {
+    if (this.state.current == PresenterState.Working) {
       return this.abort();
     }
-    if(this.state.current != PresenterState.Initial){
+    if (this.state.current != PresenterState.Initial) {
       return this.present(settings);
     }
   }

@@ -1,20 +1,21 @@
-import {useDuration, useRendererState} from '../../hooks';
+import { RendererState } from '@motion-canvas/core';
+import clsx from 'clsx';
+import { useEffect, useState } from 'preact/hooks';
+import { useApplication } from '../../contexts';
+import { useDuration, useRendererState } from '../../hooks';
+import { useShortcut } from '../../hooks/useShortcut';
+import { formatDuration } from '../../utils';
 import {
   PlaybackControls,
   PlaybackProgress,
   RenderingProgress,
 } from '../playback';
-import {CurrentTime} from '../playback/CurrentTime';
-import {EditorPreview} from './EditorPreview';
-import styles from './Viewport.module.scss';
-import {useApplication} from '../../contexts';
-import {CustomStage} from './CustomStage';
-import {RendererState} from '@motion-canvas/core';
-import {useShortcut} from '../../hooks/useShortcut';
-import {formatDuration} from '../../utils';
-import {useEffect, useState} from 'preact/hooks';
-import {Timestamp} from './Timestamp';
+import { CurrentTime } from '../playback/CurrentTime';
+import { EditorPreview } from './EditorPreview';
+import { StageView } from './StageView';
+import { Timestamp } from './Timestamp';
 import { Modules } from '@motion-canvas/core';
+import styles from './Viewport.module.scss';
 
 export function Viewport() {
   const state = useRendererState();
@@ -26,7 +27,7 @@ export function Viewport() {
 }
 
 function EditorViewport() {
-  const {hoverRef} = useShortcut<HTMLDivElement>(Modules.Viewport);
+  const { hoverRef } = useShortcut<HTMLDivElement>(Modules.Viewport);
   const duration = useDuration();
 
   return (
@@ -38,15 +39,18 @@ function EditorViewport() {
           render={time => (
             <Timestamp
               className={styles.time}
-              title="Current Time"
+              title="Current time"
+              frameTitle="Current frame"
               frame={time}
             />
           )}
         />
         <PlaybackControls />
         <Timestamp
+          reverse
           className={styles.duration}
           title="Duration"
+          frameTitle="Duration in frames"
           frame={duration}
         />
       </div>
@@ -55,7 +59,7 @@ function EditorViewport() {
 }
 
 function RenderingViewport() {
-  const {renderer} = useApplication();
+  const { renderer } = useApplication();
   const [estimate, setEstimate] = useState(renderer.estimator.estimate());
 
   useEffect(() => {
@@ -69,7 +73,11 @@ function RenderingViewport() {
     <div className={styles.root}>
       <CustomStage stage={renderer.stage} >
         <PlaybackProgress />
-      </CustomStage> 
+      </CustomStage>
+      <StageView
+        stage={renderer.stage}
+        className={clsx(styles.viewport, styles.renderingPreview)}
+      />
       <RenderingProgress />
       <div className={styles.playback}>
         <code
@@ -88,7 +96,6 @@ function RenderingViewport() {
           {formatDuration(estimate.eta / 1000)}
         </code>
       </div>
-    </div>
+    </div >
   );
 }
- 
