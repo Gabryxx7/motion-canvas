@@ -1,13 +1,6 @@
-import {Header} from './components/layout';
+import { Header } from './components/layout';
 import styles from './Index.module.scss';
 import { Modules, Action, KeyBindingMapping, ModuleType } from '@motion-canvas/core';
-
-export class UIAction extends Action {
-  public getTooltip(module = (Modules.Global as ModuleType)) {
-    const actionKeys = KeyBindingMapping.getActionKeys(this, module);
-    return `${this.name} ${actionKeys.map(k => '[' + k.shortName + ']').join(' or ')}`;
- }
-}
 
 export interface ProjectData {
   name: string;
@@ -19,7 +12,7 @@ export interface ProjectSelectionProps {
   projects: ProjectData[];
 }
 
-export function ProjectSelection({projects}: ProjectSelectionProps) {
+export function ProjectSelection({ projects }: ProjectSelectionProps) {
   return (
     <div className={styles.root}>
       <Header className={styles.header}>Projects</Header>

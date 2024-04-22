@@ -1,15 +1,16 @@
-import {useShortcuts} from '../../contexts/shortcuts';
+import { useShortcuts } from '../../contexts/shortcuts';
 import styles from './Footer.module.scss';
-import {Versions} from './Versions';
+import { Versions } from './Versions';
+import { UIAction } from '../../contexts'
 
 export function Footer() {
-  const {moduleShortcuts, currentModule} = useShortcuts();
+  const { moduleShortcuts, currentModule } = useShortcuts();
   return (
     <div className={styles.root}>
       <div className={styles.shortcuts}>
         {Object.values(moduleShortcuts)
-          .filter(({available}) => !available || available())
-          .map(({name, keys}) => (
+          .filter(({ available }) => !available || available())
+          .map(({ name, keys }) => (
             <div className={styles.shortcut}>
               {keys.map(k => <code className={styles.key}>{k.code}</code>)}
               <span className={styles.action}>{name}</span>

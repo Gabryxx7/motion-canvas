@@ -1,5 +1,5 @@
 import { ModuleShortcuts } from '../../contexts';
-import { UIAction } from '../../Index';
+import { UIAction } from "../../contexts"
 import { KeyCodes } from '@motion-canvas/core';
 
 export enum PlaybackActions {
@@ -13,8 +13,8 @@ export enum PlaybackActions {
    TO_LAST_SLIDE,
 }
 
-export type PlaybackKeybindingsType = Record<keyof typeof PlaybackActions , UIAction> | ModuleShortcuts
-export const PlaybackKeybindings : PlaybackKeybindingsType = {
+export type PlaybackKeybindingsType = Record<keyof typeof PlaybackActions, UIAction> | ModuleShortcuts
+export const PlaybackKeybindings: PlaybackKeybindingsType = {
    NEXT_SLIDE: new UIAction(
       'Next slide', [KeyCodes.UP_ARROW]
    ),
@@ -40,4 +40,3 @@ export const PlaybackKeybindings : PlaybackKeybindingsType = {
       'Toggle Presentation Mode', [KeyCodes.KEY_P]
    ),
 }
- 

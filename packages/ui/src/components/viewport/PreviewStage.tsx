@@ -1,6 +1,5 @@
 import { Stage } from '@motion-canvas/core';
-import { JSX } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState, useRef } from 'preact/hooks';
 import { useApplication } from '../../contexts';
 import {
   usePreviewSettings,
@@ -13,6 +12,7 @@ import { StageView } from './StageView';
 
 export function PreviewStage(props: JSX.HTMLAttributes<HTMLDivElement>) {
   const [stage] = useState(() => new Stage());
+  const ref = useRef<HTMLDivElement>();
   const { player } = useApplication();
   const { size, background } = useSharedSettings();
   const { resolutionScale } = usePreviewSettings();

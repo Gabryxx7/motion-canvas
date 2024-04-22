@@ -1,12 +1,11 @@
 import clsx from 'clsx';
-import { useMemo, useRef } from 'preact/hooks';
 import { ViewportProvider, ViewportState, useApplication } from '../../contexts';
 import { useRenderingSettings, useSharedSettings, useSize } from '../../hooks';
-import { StageView } from '../viewport';
+import { StageView, CustomStage } from '../viewport';
 import { OverlayCanvas } from '../viewport/OverlayCanvas';
 import styles from '../viewport/Viewport.module.scss';
 import { PresentationControls } from './PresentationControls';
-import { useLayoutEffect, useRef, Ref, useState } from 'preact/hooks';
+import { useLayoutEffect, useRef, Ref, useState, useMemo } from 'preact/hooks';
 import { SlideGraph } from './SlideGraph';
 import { useShortcuts } from '../../contexts';
 import { ModuleType, Modules } from '@motion-canvas/core';

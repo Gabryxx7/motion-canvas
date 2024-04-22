@@ -1,6 +1,6 @@
 import { ModuleShortcuts } from '../../contexts';
-import { UIAction } from '../../Index';
 import { KeyCodes } from '@motion-canvas/core';
+import { UIAction } from '../../contexts';
 
 export enum PresentationActions {
    NEXT_SLIDE,
@@ -13,8 +13,8 @@ export enum PresentationActions {
    TOGGLE_PRESENT_MODE,
 }
 
-export type PresentationKeybindingsType = Record<keyof typeof PresentationActions , UIAction> | ModuleShortcuts
-export const PresentationKeybindings : PresentationKeybindingsType = {
+export type PresentationKeybindingsType = Record<keyof typeof PresentationActions, UIAction> | ModuleShortcuts
+export const PresentationKeybindings: PresentationKeybindingsType = {
    NEXT_SLIDE: new UIAction(
       'Next slide', [KeyCodes.UP_ARROW]
    ),

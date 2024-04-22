@@ -1,4 +1,4 @@
-import { ShortcutModules, useShortcuts } from '../contexts/shortcuts';
+import { useShortcuts } from '../contexts/shortcuts';
 import { useHover } from './useHover';
 import { Modules, Action, KeyBindingMapping, ModuleType } from '@motion-canvas/core';
 import { ModuleShortcuts } from '../contexts/shortcuts';

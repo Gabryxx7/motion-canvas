@@ -1,39 +1,39 @@
 import { ModuleType } from "../types";
-import {Modules} from "../types/Module";
+import { Modules } from "../types/Module";
 
 export class KeyCode {
-   private declare modifierKey? : KeyCode;
-   private declare withKey? : KeyCode;
-   public shortName : string;
-   public longName : string;
-   public code : string;
+   private declare modifierKey?: KeyCode;
+   private declare withKey?: KeyCode;
+   public shortName: string;
+   public longName: string;
+   public code: string;
    constructor(code: string, shortName?: string, longName?: string) {
       this.code = code;
       this.shortName = shortName ?? this.code;
       this.longName = longName ?? this.shortName;
    }
- 
-   public with(key: KeyCode){
-     this.withKey = key;
-     this.shortName = this.shortName+'+'+key.code;
-     return this;
+
+   public with(key: KeyCode) {
+      this.withKey = key;
+      this.shortName = this.shortName + '+' + key.code;
+      return this;
    }
- 
-   public modifier(key: KeyCode){
-     this.modifierKey = key;
-     this.shortName = key.code+'+'+this.shortName;
-     return this;
+
+   public modifier(key: KeyCode) {
+      this.modifierKey = key;
+      this.shortName = key.code + '+' + this.shortName;
+      return this;
    }
- }
+}
 
 
- export interface ActionProps {
+export interface ActionProps {
    name: string,
    description?: string,
    keys?: KeyCode[],
- }
- export class Action implements ActionProps{
-   public keys : KeyCode[] = [];
+}
+export class Action implements ActionProps {
+   public keys: KeyCode[] = [];
    public name = "";
    public description = "";
    public available = (() => true);
@@ -43,27 +43,27 @@ export class KeyCode {
       this.keys = Array.isArray(keys) ? keys : [keys];
       this.available = available;
    }
- }
- 
+}
+
 
 export class KeyBindingMapping {
-   private static ActionKeys : Record<string, Record<ModuleType, KeyCode[]>> = {};
-   private static KeyActions : Record<string, Record<ModuleType, Action[]>> = {};
+   private static ActionKeys: Record<string, Record<ModuleType, KeyCode[]>> = {};
+   private static KeyActions: Record<string, Record<ModuleType, Action[]>> = {};
 
-   private static getModulesRecord<T>(){
+   private static getModulesRecord<T>() {
       return Object.keys(Modules).reduce((res, key) =>
          (res[key as ModuleType] = [], res), {} as Record<ModuleType, T[]>)
    }
 
-   public static getKeyActions(key: KeyCode, ModuleType: ModuleType) : Action[] {
+   public static getKeyActions(key: KeyCode, ModuleType: ModuleType): Action[] {
       return KeyBindingMapping.KeyActions[key.shortName][ModuleType];
    }
 
-   public static getActionKeys(action: Action, ModuleType: ModuleType) : KeyCode[]{
+   public static getActionKeys(action: Action, ModuleType: ModuleType): KeyCode[] {
       return KeyBindingMapping.ActionKeys[action.name][ModuleType];
    }
 
-   public static bindActionToKey(action: Action, key?: KeyCode | KeyCode[]){
+   public static bindActionToKey(action: Action, key?: KeyCode | KeyCode[]) {
       let actionKeys = key ?? action.keys;
       actionKeys = Array.isArray(actionKeys) ? actionKeys : [actionKeys];
       actionKeys.forEach(k => {
@@ -72,29 +72,29 @@ export class KeyBindingMapping {
       })
    }
 
-   public static bindKeyToAction(key: KeyCode, action: Action | Action[]){
+   public static bindKeyToAction(key: KeyCode, action: Action | Action[]) {
       const actions = Array.isArray(action) ? action : [action];
       actions.forEach(a => {
          KeyBindingMapping.addActionToKey(key, a)
          KeyBindingMapping.addKeyToAction(a, key)
       })
    }
-   
-   private static addKeyToAction(action: Action, key: KeyCode, module = (Modules.Global as ModuleType)){
-      if(!KeyBindingMapping.ActionKeys[action.name]){
-            KeyBindingMapping.ActionKeys[action.name] = KeyBindingMapping.getModulesRecord();
+
+   private static addKeyToAction(action: Action, key: KeyCode, module = (Modules.Global as ModuleType)) {
+      if (!KeyBindingMapping.ActionKeys[action.name]) {
+         KeyBindingMapping.ActionKeys[action.name] = KeyBindingMapping.getModulesRecord();
       }
-      if(!KeyBindingMapping.ActionKeys[action.name][module]){
+      if (!KeyBindingMapping.ActionKeys[action.name][module]) {
          KeyBindingMapping.ActionKeys[action.name][module] = []
       }
       KeyBindingMapping.ActionKeys[action.name][module].push(key as KeyCode);
    }
 
-   private static addActionToKey(key: KeyCode, action: Action, module = (Modules.Global as ModuleType)){
-      if(!KeyBindingMapping.KeyActions[key.shortName]){
-            KeyBindingMapping.KeyActions[key.shortName] = KeyBindingMapping.getModulesRecord();
+   private static addActionToKey(key: KeyCode, action: Action, module = (Modules.Global as ModuleType)) {
+      if (!KeyBindingMapping.KeyActions[key.shortName]) {
+         KeyBindingMapping.KeyActions[key.shortName] = KeyBindingMapping.getModulesRecord();
       }
-      if(!KeyBindingMapping.KeyActions[key.shortName][module]){
+      if (!KeyBindingMapping.KeyActions[key.shortName][module]) {
          KeyBindingMapping.KeyActions[key.shortName][module] = [];
       }
       KeyBindingMapping.KeyActions[key.shortName][module].push(action as Action);
@@ -106,6 +106,7 @@ export const KeyCodes = {
    SPACEBAR: new KeyCode(' ', 'Space'),
    ESCAPE: new KeyCode('Escape', 'ESC'),
    SHIFT: new KeyCode('Shift', 'Shift'),
+   CONTROL: new KeyCode('Control', 'Control'),
 
    UP_ARROW: new KeyCode('ArrowUp', '↑', 'Up Arrow'),
    DOWN_ARROW: new KeyCode('ArrowDown', '↓', 'Down Arrow'),

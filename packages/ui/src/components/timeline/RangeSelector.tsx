@@ -1,36 +1,37 @@
 import styles from './Timeline.module.scss';
 
 import clsx from 'clsx';
-import {RefObject} from 'preact';
-import {useCallback, useEffect, useState} from 'preact/hooks';
-import {useApplication, useTimelineContext} from '../../contexts';
+import { RefObject } from 'preact';
+import { useCallback, useEffect, useState } from 'preact/hooks';
+import { useApplication, useTimelineContext } from '../../contexts';
 import {
   useDuration,
   useKeyHold,
   usePreviewSettings,
   useSharedSettings,
 } from '../../hooks';
-import {labelClipDraggingLeftSignal} from '../../signals';
-import {MouseButton} from '../../utils';
-import {DragIndicator} from '../icons';
+import { labelClipDraggingLeftSignal } from '../../signals';
+import { MouseButton } from '../../utils';
+import { DragIndicator } from '../icons';
+import { KeyCodes } from '@motion-canvas/core';
 
 export interface RangeSelectorProps {
   rangeRef: RefObject<HTMLDivElement>;
 }
 
-export function RangeSelector({rangeRef}: RangeSelectorProps) {
-  const {pixelsToFrames, framesToPercents, pointerToFrames} =
+export function RangeSelector({ rangeRef }: RangeSelectorProps) {
+  const { pixelsToFrames, framesToPercents, pointerToFrames } =
     useTimelineContext();
-  const {player, meta} = useApplication();
-  const {range} = useSharedSettings();
-  const {fps} = usePreviewSettings();
+  const { player, meta } = useApplication();
+  const { range } = useSharedSettings();
+  const { fps } = usePreviewSettings();
   const duration = useDuration();
   const startFrame = player.status.secondsToFrames(range[0]);
   const endFrame = Math.min(player.status.secondsToFrames(range[1]), duration);
   const [start, setStart] = useState(startFrame);
   const [end, setEnd] = useState(endFrame);
-  const shiftHeld = useKeyHold('Shift');
-  const controlHeld = useKeyHold('Control');
+  const shiftHeld = useKeyHold(KeyCodes.SHIFT);
+  const controlHeld = useKeyHold(KeyCodes.CONTROL);
 
   const onDrop = useCallback(() => {
     labelClipDraggingLeftSignal.value = null;
@@ -82,9 +83,8 @@ export function RangeSelector({rangeRef}: RangeSelectorProps) {
         style={{
           flexDirection: start > end ? 'row-reverse' : 'row',
           left: `${framesToPercents(Math.ceil(Math.max(0, normalizedStart)))}%`,
-          right: `${
-            100 - framesToPercents(Math.ceil(Math.min(duration, normalizedEnd)))
-          }%`,
+          right: `${100 - framesToPercents(Math.ceil(Math.min(duration, normalizedEnd)))
+            }%`,
         }}
         className={clsx(
           styles.range,
@@ -127,9 +127,9 @@ interface RangeHandleProps {
   onDrop: (event: PointerEvent) => void;
 }
 
-function RangeHandle({value, setValue, onDrop}: RangeHandleProps) {
-  const {pixelsToFrames} = useTimelineContext();
-  const {player} = useApplication();
+function RangeHandle({ value, setValue, onDrop }: RangeHandleProps) {
+  const { pixelsToFrames } = useTimelineContext();
+  const { player } = useApplication();
 
   return (
     <DragIndicator

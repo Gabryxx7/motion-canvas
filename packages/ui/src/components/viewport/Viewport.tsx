@@ -16,6 +16,7 @@ import { StageView } from './StageView';
 import { Timestamp } from './Timestamp';
 import { Modules } from '@motion-canvas/core';
 import styles from './Viewport.module.scss';
+import { CustomStage } from './CustomStage';
 
 export function Viewport() {
   const state = useRendererState();
