@@ -1,6 +1,5 @@
 import { ModuleShortcuts } from '../../contexts';
-import { UIAction } from '../../contexts';
-import { KeyCodes } from '@motion-canvas/core';
+import { KeyCodes, UIAction } from '@motion-canvas/core';
 
 
 export enum ViewportActions {

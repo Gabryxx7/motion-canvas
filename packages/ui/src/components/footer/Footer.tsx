@@ -1,7 +1,6 @@
 import { useShortcuts } from '../../contexts/shortcuts';
 import styles from './Footer.module.scss';
 import { Versions } from './Versions';
-import { UIAction } from '../../contexts'
 
 export function Footer() {
   const { moduleShortcuts, currentModule } = useShortcuts();

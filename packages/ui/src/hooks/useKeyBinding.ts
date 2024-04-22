@@ -1,6 +1,6 @@
 
-import {useEffect, useState, useCallback } from 'preact/hooks';
-import {useDocumentEvent} from './useDocumentEvent';
+import { useEffect, useState, useCallback } from 'preact/hooks';
+import { useDocumentEvent } from './useDocumentEvent';
 import { useKeyDown } from './useKeyDown';
 import { Action, KeyCode, KeyBindingMapping } from '@motion-canvas/core';
 

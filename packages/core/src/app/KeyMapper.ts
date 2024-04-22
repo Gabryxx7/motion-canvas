@@ -45,6 +45,13 @@ export class Action implements ActionProps {
    }
 }
 
+export class UIAction extends Action {
+   public getTooltip(module = (Modules.Global as ModuleType)) {
+      const actionKeys = KeyBindingMapping.getActionKeys(this, module);
+      return `${this.name} ${actionKeys.map(k => '[' + k.shortName + ']').join(' or ')}`;
+   }
+}
+
 
 export class KeyBindingMapping {
    private static ActionKeys: Record<string, Record<ModuleType, KeyCode[]>> = {};

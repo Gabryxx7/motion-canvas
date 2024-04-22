@@ -1,6 +1,5 @@
 import { ModuleShortcuts } from '../../contexts';
-import { KeyCodes } from '@motion-canvas/core';
-import { UIAction } from '../../contexts';
+import { KeyCodes, UIAction } from '@motion-canvas/core';
 
 export enum PresentationActions {
    NEXT_SLIDE,

@@ -1,6 +1,5 @@
 import { useKeyDown } from './useKeyDown';
-import { UIAction } from '../contexts';
-import { Action } from '@motion-canvas/core';
+import { Action, UIAction } from '@motion-canvas/core';
 
 export declare type KeyActionCallbackType = (...args: any) => void;
 export function useAction(action: Action, callback?: KeyActionCallbackType) {

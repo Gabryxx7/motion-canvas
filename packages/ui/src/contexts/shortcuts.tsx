@@ -3,14 +3,7 @@ import { useContext, useMemo, useState, useEffect } from 'preact/hooks';
 import { ViewportKeybindings } from '../components/viewport/ViewportKeybindings';
 import { TimelineKeybindings } from '../components/timeline/TimelineKeybindings';
 import { PresentationKeybindings } from '../components/presentation/PresentationKeybindings';
-import { Modules, KeyBindingMapping, ModuleType, Action, KeyCodes } from '@motion-canvas/core';
-
-export class UIAction extends Action {
-  public getTooltip(module = (Modules.Global as ModuleType)) {
-    const actionKeys = KeyBindingMapping.getActionKeys(this, module);
-    return `${this.name} ${actionKeys.map(k => '[' + k.shortName + ']').join(' or ')}`;
-  }
-}
+import { Modules, KeyBindingMapping, ModuleType, Action, KeyCodes, UIAction } from '@motion-canvas/core';
 
 export declare type ModuleShortcuts = Record<string, UIAction>
 export declare type ShortcutsByModule = Record<ModuleType | string, ModuleShortcuts>

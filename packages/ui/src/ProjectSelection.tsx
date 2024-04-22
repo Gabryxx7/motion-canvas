@@ -2,6 +2,8 @@ import { Header } from './components/layout';
 import styles from './Index.module.scss';
 import { Modules, Action, KeyBindingMapping, ModuleType } from '@motion-canvas/core';
 
+
+
 export interface ProjectData {
   name: string;
   fileName: string;
