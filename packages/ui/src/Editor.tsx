@@ -15,14 +15,6 @@ import { useApplication } from './contexts';
 export function Editor() {
   const state = usePresenterState();
   const { renderer, presenter, meta, project } = useApplication();
-  if (project.variables?.presentOnStart) {
-    presenter.present({
-      ...meta.getFullRenderingSettings(),
-      name: project.name,
-      slide: null,
-      startFullscreen: !!project.variables?.fullscreen
-    });
-  }
   const { sidebar, bottom } = usePanels();
 
   return state === PresenterState.Initial ? (

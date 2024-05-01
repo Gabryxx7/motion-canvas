@@ -29,10 +29,6 @@ function renderRoot(vnode: ComponentChild) {
   render(vnode, root);
 }
 
-// export * from "../src/components/viewport/CustomStageOverlay"
-
-// export const stageOverlay = CustomStageOverlay;
-
 export function editor(project: Project) {
   Error.stackTraceLimit = Infinity;
   projectNameSignal.value = project.name;
@@ -134,7 +130,6 @@ export function editor(project: Project) {
         project,
         meta,
         settings,
-        // customStageOverlay
         plugins,
       }}
     >

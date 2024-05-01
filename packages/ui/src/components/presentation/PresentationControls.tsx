@@ -13,40 +13,19 @@ import {
   SkipPrevious,
 } from '../icons';
 
-import { PresentationKeybindings, PresentationKeybindingsType } from './PresentationKeybindings';
-import { useAction } from '../../hooks/useAction';
-import { PresenterState } from '@motion-canvas/core';
-
-export interface PresentationControlsProps {
-  customStage?: Ref<HTMLDivElement>,
-  onKeyPressed?: (key: string) => void;
-}
-
-export function PresentationControls({ customStage, onKeyPressed }: PresentationControlsProps) {
+export function PresentationControls() {
   const { presenter, project } = useApplication();
   // const {moduleShortcuts} : {moduleShortcuts: PresentationKeybindingsType} = useShortcuts();
   const state = useSubscribableValue(presenter.onStateChanged);
   const status = useSubscribableValue(presenter.onInfoChanged);
-
-  useEffect(() => {
-    presenter.setCustomStage(customStage.current);
-  }, [])
-
-  useAction(PresentationKeybindings.RESUME, () => presenter.resume());
-  useAction(PresentationKeybindings.TOGGLE_FULLSCREEN, () => presenter.toggleFullscreen());
-  useAction(PresentationKeybindings.PREV_SLIDE, (event) => event.shiftKey ? presenter.requestFirstSlide() : presenter.requestPreviousSlide());
-  useAction(PresentationKeybindings.NEXT_SLIDE, (event) => event.shiftKey ? presenter.requestLastSlide() : presenter.requestNextSlide());
-  useAction(PresentationKeybindings.TOGGLE_PRESENT_MODE, () => {
-    console.log("P pressed on presentation mode!");
-    if (state != PresenterState.Aborting) {
-      presenter.abort();
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+    } else {
+      presenter.stage.finalBuffer.requestFullscreen();
     }
-  });
+  };
 
-  // useAction(moduleShortcuts., () => presenter.resume());
-  // useKeyAction(PresentationActions.NEXT_SLIDE,
-  //   [KeyBindings.SPACEBAR, KeyBindings.RIGHT_ARROW],
-  //   () => presenter.resume())
 
   useDocumentEvent(
     'mousedown',
@@ -68,7 +47,7 @@ export function PresentationControls({ customStage, onKeyPressed }: Presentation
           .padStart(status.count.toString().length, '0')}
         /{status.count}]
       </div>
-      {!project.variables?.fullscreen &&
+      {!project.variables?.startFullscreen &&
         <IconButton title="Go back to editing" onClick={() => presenter.abort()}>
           <Close />
         </IconButton>
@@ -94,7 +73,7 @@ export function PresentationControls({ customStage, onKeyPressed }: Presentation
       >
         <SkipNext />
       </IconButton>
-      <IconButton title="Enter fullscreen [F]" onClick={presenter.toggleFullscreen}>
+      <IconButton title="Enter fullscreen [F]" onClick={toggleFullscreen}>
         <Fullscreen />
       </IconButton>
     </div>

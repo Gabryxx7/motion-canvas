@@ -18,8 +18,6 @@ export interface Inspection {
   payload: unknown;
 }
 
-// import type {CustomStageOverlayPropsType, CustomStageOverlayType} from "../components/viewport/CustomStageOverlay"
-
 interface Application {
   project: Project;
   player: Player;
@@ -27,7 +25,6 @@ interface Application {
   presenter: Presenter;
   meta: ProjectMetadata;
   settings: SettingsMetadata;
-  // customStageOverlay: CustomStageOverlayType;
   plugins: EditorPlugin[];
   logger: LoggerManager;
   inspection: Signal<Inspection>;

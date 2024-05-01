@@ -5,6 +5,7 @@ import { TimelineKeybindings } from '../components/timeline/TimelineKeybindings'
 import { PresentationKeybindings } from '../components/presentation/PresentationKeybindings';
 import { Modules, KeyBindingMapping, ModuleType, Action, KeyCodes, UIAction } from '@motion-canvas/core';
 
+export { ViewportKeybindings, TimelineKeybindings, PresentationKeybindings };
 export declare type ModuleShortcuts = Record<string, UIAction>
 export declare type ShortcutsByModule = Record<ModuleType | string, ModuleShortcuts>
 export const GlobalKeybindings: ModuleShortcuts = {

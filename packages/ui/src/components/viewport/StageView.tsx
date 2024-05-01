@@ -32,7 +32,6 @@ export function StageView({
         (background?.alpha() ?? 0) < 1 && styles.alphaBackground,
       )}
       ref={ref}
-      {...rest}
-    />
+      {...rest}/>
   );
 }

@@ -1,7 +1,7 @@
 import clsx from 'clsx';
 import { ViewportProvider, ViewportState, useApplication } from '../../contexts';
 import { useRenderingSettings, useSharedSettings, useSize } from '../../hooks';
-import { StageView, CustomStage } from '../viewport';
+import { StageView } from '../viewport';
 import { OverlayCanvas } from '../viewport/OverlayCanvas';
 import styles from '../viewport/Viewport.module.scss';
 import { PresentationControls } from './PresentationControls';
@@ -9,6 +9,8 @@ import { useLayoutEffect, useRef, Ref, useState, useMemo } from 'preact/hooks';
 import { SlideGraph } from './SlideGraph';
 import { useShortcuts } from '../../contexts';
 import { ModuleType, Modules } from '@motion-canvas/core';
+import { ComponentChildren } from 'preact';
+export * from "./PresentationKeybindings"
 
 export function PresentationMode() {
   const { plugins, presenter } = useApplication();
@@ -16,6 +18,7 @@ export function PresentationMode() {
   const size = useSize(ref);
   const settings = useSharedSettings();
   const [keyPressed, setKeyPressed] = useState(null);
+  const overlayRef = useRef<HTMLDivElement>();
   const { resolutionScale } = useRenderingSettings();
 
   const drawHooks = useMemo(
@@ -55,16 +58,21 @@ export function PresentationMode() {
         forwardRef={ref}
         stage={presenter.stage}
         className={clsx(styles.viewport, styles.renderingPreview)}
-      />
+      >
+        <div ref={overlayRef} className={styles.overlay}>
+          {plugins.reduce((children, plugin) => {
+            const Component = plugin.presenterOverlay?.component;
+            return Component ? <Component>{children}</Component> : children;
+          }, undefined as ComponentChildren)}
+        </div>
+      </StageView>
       <OverlayCanvas
         drawHooks={drawHooks}
         width={size.width}
         height={size.height}
       />
-      <CustomStage forwardRef={ref} keyPressed={keyPressed} stage={presenter.stage} />
       <SlideGraph />
-      <PresentationControls onKeyPressed={(key) => setKeyPressed(key)} customStage={ref} />
-      {/* <PresentationControls /> */}
+      <PresentationControls />
     </ViewportProvider>
   );
 }
